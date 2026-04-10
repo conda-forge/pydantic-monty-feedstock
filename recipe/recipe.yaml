@@ -1,5 +1,5 @@
 context:
-  version: "0.0.10"
+  version: "0.0.11"
 
 package:
   name: pydantic-monty
@@ -9,7 +9,7 @@ source:
   # https://github.com/pydantic/monty/issues/76
   # url: https://pypi.org/packages/source/p/pydantic-monty/pydantic-monty-${{ version }}.tar.gz
   url: https://github.com/pydantic/monty/archive/refs/tags/v${{ version }}.tar.gz
-  sha256: a47582ef6f29a2c0898b326bd0e3bbd6a97ce61c4663bf83f1389c16d0ac9e1f
+  sha256: 0a00529657b8a2a637854eb5e5750a930af06fed988a185c554bb11b68c3456c
 
 build:
   script:
