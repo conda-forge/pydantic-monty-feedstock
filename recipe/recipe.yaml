@@ -1,5 +1,5 @@
 context:
-  version: 0.0.12
+  version: 0.0.13
 
 package:
   name: pydantic-monty
@@ -9,7 +9,7 @@ source:
   # https://github.com/pydantic/monty/issues/76
   # url: https://pypi.org/packages/source/p/pydantic-monty/pydantic-monty-${{ version }}.tar.gz
   url: https://github.com/pydantic/monty/archive/refs/tags/v${{ version }}.tar.gz
-  sha256: 5807c4616da5e8e893076db615e7f298181fe35ce7dfb374017a396b3bab3539
+  sha256: 77444224704882f1becda92230efd2eafb4acc9308822b7438449ee6024ceeb6
 
 build:
   script:
@@ -51,7 +51,6 @@ requirements:
     - setuptools
   run:
     - python
-    - typing_extensions >=4.5
 tests:
   - python:
       imports:
