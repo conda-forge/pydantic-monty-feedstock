@@ -51,6 +51,7 @@ requirements:
     - setuptools
   run:
     - python
+    - typing_extensions >=4.5
 tests:
   - python:
       imports:
