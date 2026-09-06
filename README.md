@@ -3,6 +3,40 @@ About pydantic-monty-client-feedstock
 
 Feedstock license: [BSD-3-Clause](https://github.com/conda-forge/pydantic-monty-feedstock/blob/main/LICENSE.txt)
 
+
+About pydantic-monty-client
+---------------------------
+
+Home: https://github.com/pydantic/monty
+
+Package license: MIT
+
+Summary: A minimal, secure Python interpreter written in Rust for use by AI
+
+Development: https://github.com/pydantic/monty
+
+A minimal, secure Python interpreter written in Rust for use by AI.
+Monty avoids the cost, latency, complexity and general faff of using full container based sandbox for running LLM generated code.
+Instead, it let's you run safely run Python code written by an LLM embedded in your agent, with startup times measured in single digit microseconds not hundreds of milliseconds.
+
+About pydantic-monty-runtime
+----------------------------
+
+Home: https://github.com/pydantic/monty
+
+Package license: MIT
+
+Summary: A minimal, secure Python interpreter written in Rust for use by AI
+
+Development: https://github.com/pydantic/monty
+
+A minimal, secure Python interpreter written in Rust for use by AI.
+Monty avoids the cost, latency, complexity and general faff of using full container based sandbox for running LLM generated code.
+Instead, it let's you run safely run Python code written by an LLM embedded in your agent, with startup times measured in single digit microseconds not hundreds of milliseconds.
+
+About pydantic-monty
+--------------------
+
 Home: https://github.com/pydantic/monty
 
 Package license: MIT
