@@ -117,6 +117,19 @@ outputs:
           # See the comment on the runtime output.
           - if: target_platform == "linux-ppc64le"
             then: export CARGO_BUILD_RUSTFLAGS="${CARGO_BUILD_RUSTFLAGS:-} -C link-arg=-fuse-ld=bfd"
+          # `aws-lc-sys`' cc-based builder hands its ARM64 assembly to cl.exe, which
+          # silently drops the `.S` files and then fails on the C feature probes.
+          # Build it through CMake with clang-cl instead, and keep CMake's object
+          # paths short enough for Windows.
+          - if: target_platform == "win-arm64"
+            then:
+              - set "CARGO_TARGET_DIR=%TMP%\pydantic-monty-cargo-target"
+              - set "CARGO_HOME=%TMP%\pydantic-monty-cargo-home"
+              - set "AWS_LC_SYS_CMAKE_BUILDER=1"
+              - set "CC_aarch64_pc_windows_msvc=clang-cl.exe"
+              - set "CXX_aarch64_pc_windows_msvc=clang-cl.exe"
+              - set "ASM_aarch64_pc_windows_msvc=clang-cl.exe"
+              - set "CMAKE_GENERATOR=Ninja"
           - python -m pip install . -vv
           - cargo-bundle-licenses --format yaml --output ./THIRD_PARTY.yml
     requirements:
@@ -131,6 +144,10 @@ outputs:
             - python
             - cross-python_${{ target_platform }}
             - maturin >=1.9.4,<2
+        - if: target_platform == "win-arm64"
+          then:
+            - cmake
+            - ninja
       host:
         - python
         - pip
