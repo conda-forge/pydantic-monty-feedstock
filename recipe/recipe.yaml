@@ -5,9 +5,6 @@ recipe:
   name: pydantic-monty
   version: ${{ version }}
 
-build:
-  number: 0
-
 source:
   - url: https://pypi.org/packages/source/p/pydantic-monty/pydantic_monty-${{ version }}.tar.gz
     sha256: ee674b81ed12f81cfbe0db210fe5e803c754d0682634331931f4d70d5742058d
@@ -18,6 +15,11 @@ source:
   - url: https://pypi.org/packages/source/p/pydantic-monty-runtime/pydantic_monty_runtime-${{ version }}.tar.gz
     sha256: d181f557cd3d19ee826459dea234a2b440e2b6de093e66384629843959146071
     target_directory: pydantic-monty-runtime
+  - url: https://raw.githubusercontent.com/pydantic/monty/refs/tags/v${{ version }}/LICENSE
+    sha256: 5841db47ee6e1f0becafe2d19ca43c08cbc6d2c0952822ccf88cbbf2bd0749bd
+
+build:
+  number: 0
 
 outputs:
   - package:
@@ -37,7 +39,7 @@ outputs:
             else:
               - copy %RECIPE_DIR%\cargo-auditable-wrapper.bat %BUILD_PREFIX%\Library\bin\cargo-auditable-wrapper.bat
           - python -m pip install . -vv
-          - cargo-bundle-licenses --format yaml --output ../../THIRD_PARTY.yml
+          - cargo-bundle-licenses --format yaml --output ./THIRD_PARTY.yml
     requirements:
       build:
         - ${{ compiler('rust') }}
@@ -48,6 +50,7 @@ outputs:
         - if: build_platform != target_platform
           then:
             - python
+            - cross-python_${{ target_platform }}
             - maturin >=1.9.4,<2
       host:
         - python
@@ -58,11 +61,16 @@ outputs:
         - python
     tests:
       - python:
-          imports:
-            - pydantic_monty_runtime
+          python_version:
+            - ${{ python_min }}.*
+            - "*"
           pip_check: true
       - script:
           - monty --version
+    about:
+      license_file:
+        - LICENSE
+        - pydantic-monty-runtime/THIRD_PARTY.yml
 
   - package:
       name: pydantic-monty-client
@@ -81,7 +89,7 @@ outputs:
             else:
               - copy %RECIPE_DIR%\cargo-auditable-wrapper.bat %BUILD_PREFIX%\Library\bin\cargo-auditable-wrapper.bat
           - python -m pip install . -vv
-          - cargo-bundle-licenses --format yaml --output ../../THIRD_PARTY.yml
+          - cargo-bundle-licenses --format yaml --output ./THIRD_PARTY.yml
     requirements:
       build:
         - ${{ compiler('rust') }}
@@ -92,6 +100,7 @@ outputs:
         - if: build_platform != target_platform
           then:
             - python
+            - cross-python_${{ target_platform }}
             - maturin >=1.9.4,<2
       host:
         - python
@@ -103,10 +112,17 @@ outputs:
     tests:
       - python:
           imports:
-            - pydantic_monty_runtime
+            - pydantic_monty
+          python_version:
+            - ${{ python_min }}.*
+            - "*"
           pip_check: true
       - script:
           - monty --version
+    about:
+      license_file:
+        - LICENSE
+        - pydantic-monty-client/THIRD_PARTY.yml
 
   - package:
       name: pydantic-monty
@@ -118,17 +134,20 @@ outputs:
         - python -m pip install . -vv
     requirements:
       host:
-        - python
+        - python ${{ python_min }}.*
         - pip
         - hatchling
       run:
-        - python
+        - python >=${{ python_min }}
         - ${{ pin_subpackage('pydantic-monty-client', upper_bound='x.x.x') }}
         - ${{ pin_subpackage('pydantic-monty-runtime', upper_bound='x.x.x') }}
     tests:
       - python:
           imports:
             - pydantic_monty
+          python_version:
+            - ${{ python_min }}.*
+            - "*"
           pip_check: true
 
 about:
@@ -141,7 +160,6 @@ about:
   license: MIT
   license_file:
     - LICENSE
-    - THIRD_PARTY.yml
   repository: https://github.com/pydantic/monty
 
 extra:
