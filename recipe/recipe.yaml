@@ -10,13 +10,13 @@ build:
 
 source:
   - url: https://pypi.org/packages/source/p/pydantic-monty/pydantic_monty-${{ version }}.tar.gz
-    sha256: ae536660036d3e1b50053a87b56e50558fb1b3f5edb8bbb7c881146401f02ae4
+    sha256: ee674b81ed12f81cfbe0db210fe5e803c754d0682634331931f4d70d5742058d
     target_directory: pydantic-monty
   - url: https://pypi.org/packages/source/p/pydantic-monty-client/pydantic_monty_client-${{ version }}.tar.gz
-    sha256: ae536660036d3e1b50053a87b56e50558fb1b3f5edb8bbb7c881146401f02ae4
+    sha256: 8b31f75afebb60c0416c869c8d6667a75e84b0f05b7a0b44e51b77ef98f294d7
     target_directory: pydantic-monty-client
   - url: https://pypi.org/packages/source/p/pydantic-monty-runtime/pydantic_monty_runtime-${{ version }}.tar.gz
-    sha256: ae536660036d3e1b50053a87b56e50558fb1b3f5edb8bbb7c881146401f02ae4
+    sha256: d181f557cd3d19ee826459dea234a2b440e2b6de093e66384629843959146071
     target_directory: pydantic-monty-runtime
 
 outputs:
