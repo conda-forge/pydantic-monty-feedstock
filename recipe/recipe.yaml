@@ -19,18 +19,22 @@ source:
     sha256: 5841db47ee6e1f0becafe2d19ca43c08cbc6d2c0952822ccf88cbbf2bd0749bd
 
 build:
-  number: 0
+  number: 2
 
 outputs:
+  # The `monty` binary (maturin `bindings = "bin"`), so the wheel carries no
+  # extension module and one build serves every python version.
   - package:
       name: pydantic-monty-runtime
     build:
+      skip: not is_python_min
       python:
         version_independent: true
       script:
         env:
           CARGO_PROFILE_RELEASE_STRIP: symbols
           CARGO_PROFILE_RELEASE_LTO: fat
+          CARGO: cargo-auditable-wrapper${{ '' if unix else '.bat' }}
         content:
           - cd pydantic-monty-runtime
           - if: unix
@@ -38,6 +42,15 @@ outputs:
               - cp ${RECIPE_DIR}/cargo-auditable-wrapper.sh ${BUILD_PREFIX}/bin/cargo-auditable-wrapper
             else:
               - copy %RECIPE_DIR%\cargo-auditable-wrapper.bat %BUILD_PREFIX%\Library\bin\cargo-auditable-wrapper.bat
+          # cc-rs concatenates $CFLAGS with the target-scoped flags instead of
+          # letting the latter win, so the cross flags leak into the build-script
+          # (i.e. build platform) compilations of C crates such as `zstd-sys`
+          # pulled in by `ty_vendored`. Scope them to the target instead.
+          - if: build_platform != target_platform
+            then:
+              - export TARGET_CFLAGS="${CFLAGS}"
+              - export TARGET_CXXFLAGS="${CXXFLAGS}"
+              - unset CFLAGS CXXFLAGS
           - python -m pip install . -vv
           - cargo-bundle-licenses --format yaml --output ./THIRD_PARTY.yml
     requirements:
@@ -51,11 +64,11 @@ outputs:
           then:
             - python
             - cross-python_${{ target_platform }}
-            - maturin >=1.9.4,<2
+            - maturin >=1.14.1,<2
       host:
         - python
         - pip
-        - maturin >=1.9.4,<2
+        - maturin >=1.14.1,<2
         - setuptools
       run:
         - python
@@ -72,15 +85,16 @@ outputs:
         - LICENSE
         - pydantic-monty-runtime/THIRD_PARTY.yml
 
+  # The `pydantic_monty` module. pyo3 without abi3, so this is built once per
+  # python version.
   - package:
       name: pydantic-monty-client
     build:
-      python:
-        version_independent: true
       script:
         env:
           CARGO_PROFILE_RELEASE_STRIP: symbols
           CARGO_PROFILE_RELEASE_LTO: fat
+          CARGO: cargo-auditable-wrapper${{ '' if unix else '.bat' }}
         content:
           - cd pydantic-monty-client
           - if: unix
@@ -88,6 +102,12 @@ outputs:
               - cp ${RECIPE_DIR}/cargo-auditable-wrapper.sh ${BUILD_PREFIX}/bin/cargo-auditable-wrapper
             else:
               - copy %RECIPE_DIR%\cargo-auditable-wrapper.bat %BUILD_PREFIX%\Library\bin\cargo-auditable-wrapper.bat
+          # See the comment on the runtime output.
+          - if: build_platform != target_platform
+            then:
+              - export TARGET_CFLAGS="${CFLAGS}"
+              - export TARGET_CXXFLAGS="${CXXFLAGS}"
+              - unset CFLAGS CXXFLAGS
           - python -m pip install . -vv
           - cargo-bundle-licenses --format yaml --output ./THIRD_PARTY.yml
     requirements:
@@ -114,17 +134,13 @@ outputs:
       - python:
           imports:
             - pydantic_monty
-          python_version:
-            - ${{ python_min }}.*
-            - "*"
           pip_check: true
-      - script:
-          - monty --version
     about:
       license_file:
         - LICENSE
         - pydantic-monty-client/THIRD_PARTY.yml
 
+  # Metapackage pairing the module with the binary it spawns as a worker.
   - package:
       name: pydantic-monty
     build:
@@ -150,6 +166,11 @@ outputs:
             - ${{ python_min }}.*
             - "*"
           pip_check: true
+      # `pydantic-monty` resolves the `monty` binary from the runtime, so this
+      # only passes if both halves are wired up.
+      - script:
+          - monty --version
+          - pydantic-monty --version
 
 about:
   homepage: https://github.com/pydantic/monty
