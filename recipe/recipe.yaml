@@ -1,62 +1,129 @@
 context:
   version: "0.0.23"
 
-package:
+recipe:
   name: pydantic-monty
   version: ${{ version }}
 
-source:
-  # https://github.com/pydantic/monty/issues/76
-  # url: https://pypi.org/packages/source/p/pydantic-monty/pydantic-monty-${{ version }}.tar.gz
-  url: https://github.com/pydantic/monty/archive/refs/tags/v${{ version }}.tar.gz
-  sha256: 653bc739256dc511fa7600d1f7ee0a2f392ccbe91018a99e0c62c496197728a9
-
 build:
-  script:
-    env:
-      CARGO_PROFILE_RELEASE_STRIP: symbols
-      CARGO_PROFILE_RELEASE_LTO: fat
-      CARGO: cargo-auditable-wrapper${{ '' if unix else '.bat' }}
-    content:
-      - cd crates/monty-python
-      - if: win
-        then:
-          # hack: path too long for ruff subpackage
-          - set CARGO_HOME=C:\.cargo
-      - if: unix
-        then:
-          - cp ${RECIPE_DIR}/cargo-auditable-wrapper.sh ${BUILD_PREFIX}/bin/cargo-auditable-wrapper
-        else:
-          - copy %RECIPE_DIR%\cargo-auditable-wrapper.bat %BUILD_PREFIX%\Library\bin\cargo-auditable-wrapper.bat
-      - python -m pip install . -vv
-      - cargo-bundle-licenses --format yaml --output ../../THIRD_PARTY.yml
-  number: 1
+  number: 0
 
-requirements:
-  build:
-    - ${{ compiler('c') }}
-    - ${{ compiler('rust') }}
-    - ${{ stdlib('c') }}
-    - cargo-bundle-licenses
-    - cargo-auditable
-    - if: build_platform != target_platform
-      then:
+source:
+  - url: https://pypi.org/packages/source/p/pydantic-monty/pydantic_monty-${{ version }}.tar.gz
+    sha256: ae536660036d3e1b50053a87b56e50558fb1b3f5edb8bbb7c881146401f02ae4
+    target_directory: pydantic-monty
+  - url: https://pypi.org/packages/source/p/pydantic-monty-client/pydantic_monty_client-${{ version }}.tar.gz
+    sha256: ae536660036d3e1b50053a87b56e50558fb1b3f5edb8bbb7c881146401f02ae4
+    target_directory: pydantic-monty-client
+  - url: https://pypi.org/packages/source/p/pydantic-monty-runtime/pydantic_monty_runtime-${{ version }}.tar.gz
+    sha256: ae536660036d3e1b50053a87b56e50558fb1b3f5edb8bbb7c881146401f02ae4
+    target_directory: pydantic-monty-runtime
+
+outputs:
+  - package:
+      name: pydantic-monty-runtime
+    build:
+      python:
+        version_independent: true
+      script:
+        env:
+          CARGO_PROFILE_RELEASE_STRIP: symbols
+          CARGO_PROFILE_RELEASE_LTO: fat
+        content:
+          - cd pydantic-monty-runtime
+          - if: unix
+            then:
+              - cp ${RECIPE_DIR}/cargo-auditable-wrapper.sh ${BUILD_PREFIX}/bin/cargo-auditable-wrapper
+            else:
+              - copy %RECIPE_DIR%\cargo-auditable-wrapper.bat %BUILD_PREFIX%\Library\bin\cargo-auditable-wrapper.bat
+          - python -m pip install . -vv
+          - cargo-bundle-licenses --format yaml --output ../../THIRD_PARTY.yml
+    requirements:
+      build:
+        - cargo-bundle-licenses
+        - cargo-auditable
+        - if: build_platform != target_platform
+          then:
+            - python
+            - maturin >=1.9.4,<2
+      host:
         - python
-        - cross-python_${{ target_platform }}
+        - pip
         - maturin >=1.9.4,<2
-  host:
-    - python
-    - pip
-    - maturin >=1.9.4,<2
-    - setuptools
-  run:
-    - python
-    - typing_extensions >=4.5
-tests:
-  - python:
-      imports:
-        - pydantic_monty
-      pip_check: true
+        - setuptools
+      run:
+        - python
+    tests:
+      - python:
+          imports:
+            - pydantic_monty_runtime
+          pip_check: true
+      - script:
+          - monty --version
+
+  - package:
+      name: pydantic-monty-client
+    build:
+      python:
+        version_independent: true
+      script:
+        env:
+          CARGO_PROFILE_RELEASE_STRIP: symbols
+          CARGO_PROFILE_RELEASE_LTO: fat
+        content:
+          - cd pydantic-monty-client
+          - if: unix
+            then:
+              - cp ${RECIPE_DIR}/cargo-auditable-wrapper.sh ${BUILD_PREFIX}/bin/cargo-auditable-wrapper
+            else:
+              - copy %RECIPE_DIR%\cargo-auditable-wrapper.bat %BUILD_PREFIX%\Library\bin\cargo-auditable-wrapper.bat
+          - python -m pip install . -vv
+          - cargo-bundle-licenses --format yaml --output ../../THIRD_PARTY.yml
+    requirements:
+      build:
+        - cargo-bundle-licenses
+        - cargo-auditable
+        - if: build_platform != target_platform
+          then:
+            - python
+            - maturin >=1.9.4,<2
+      host:
+        - python
+        - pip
+        - maturin >=1.9.4,<2
+        - setuptools
+      run:
+        - python
+    tests:
+      - python:
+          imports:
+            - pydantic_monty_runtime
+          pip_check: true
+      - script:
+          - monty --version
+
+  - package:
+      name: pydantic-monty
+    build:
+      skip: not (target_platform == "linux-64" and is_python_min)
+      noarch: python
+      script:
+        - cd pydantic-monty
+        - python -m pip install . -vv
+    requirements:
+      host:
+        - python
+        - pip
+        - hatchling
+      run:
+        - python
+        - ${{ pin_subpackage('pydantic-monty-client', upper_bound='x.x.x') }}
+        - ${{ pin_subpackage('pydantic-monty-runtime', upper_bound='x.x.x') }}
+    tests:
+      - python:
+          imports:
+            - pydantic_monty
+          pip_check: true
 
 about:
   homepage: https://github.com/pydantic/monty
