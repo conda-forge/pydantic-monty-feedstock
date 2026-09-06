@@ -51,6 +51,12 @@ outputs:
               - export TARGET_CFLAGS="${CFLAGS}"
               - export TARGET_CXXFLAGS="${CXXFLAGS}"
               - unset CFLAGS CXXFLAGS
+          # rust-lld cannot handle some of the relocations gcc emits for ppc64le
+          # (the inline-PLT R_PPC64_PLTSEQ/PLTCALL sequences), which breaks linking
+          # of the C crates. gcc honours the last `-fuse-ld`, so this overrides
+          # rustc's bundled rust-lld with the GNU bfd linker.
+          - if: target_platform == "linux-ppc64le"
+            then: export CARGO_BUILD_RUSTFLAGS="${CARGO_BUILD_RUSTFLAGS:-} -C link-arg=-fuse-ld=bfd"
           - python -m pip install . -vv
           - cargo-bundle-licenses --format yaml --output ./THIRD_PARTY.yml
     requirements:
@@ -108,6 +114,9 @@ outputs:
               - export TARGET_CFLAGS="${CFLAGS}"
               - export TARGET_CXXFLAGS="${CXXFLAGS}"
               - unset CFLAGS CXXFLAGS
+          # See the comment on the runtime output.
+          - if: target_platform == "linux-ppc64le"
+            then: export CARGO_BUILD_RUSTFLAGS="${CARGO_BUILD_RUSTFLAGS:-} -C link-arg=-fuse-ld=bfd"
           - python -m pip install . -vv
           - cargo-bundle-licenses --format yaml --output ./THIRD_PARTY.yml
     requirements:
