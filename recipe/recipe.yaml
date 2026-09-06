@@ -75,7 +75,6 @@ outputs:
         - python
         - pip
         - maturin >=1.14.1,<2
-        - setuptools
       run:
         - python
     tests:
@@ -152,7 +151,6 @@ outputs:
         - python
         - pip
         - maturin >=1.9.4,<2
-        - setuptools
       run:
         - python
         - typing_extensions >=4.5
@@ -172,6 +170,9 @@ outputs:
     build:
       skip: not (target_platform == "linux-64" and is_python_min)
       noarch: python
+      python:
+        entry_points:
+          - pydantic-monty = pydantic_monty._cli:main
       script:
         - cd pydantic-monty
         - python -m pip install . -vv
