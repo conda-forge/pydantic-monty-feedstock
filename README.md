@@ -1,7 +1,41 @@
-About pydantic-monty-feedstock
-==============================
+About pydantic-monty-client-feedstock
+=====================================
 
 Feedstock license: [BSD-3-Clause](https://github.com/conda-forge/pydantic-monty-feedstock/blob/main/LICENSE.txt)
+
+
+About pydantic-monty-client
+---------------------------
+
+Home: https://github.com/pydantic/monty
+
+Package license: MIT
+
+Summary: A minimal, secure Python interpreter written in Rust for use by AI
+
+Development: https://github.com/pydantic/monty
+
+A minimal, secure Python interpreter written in Rust for use by AI.
+Monty avoids the cost, latency, complexity and general faff of using full container based sandbox for running LLM generated code.
+Instead, it let's you run safely run Python code written by an LLM embedded in your agent, with startup times measured in single digit microseconds not hundreds of milliseconds.
+
+About pydantic-monty-runtime
+----------------------------
+
+Home: https://github.com/pydantic/monty
+
+Package license: MIT
+
+Summary: A minimal, secure Python interpreter written in Rust for use by AI
+
+Development: https://github.com/pydantic/monty
+
+A minimal, secure Python interpreter written in Rust for use by AI.
+Monty avoids the cost, latency, complexity and general faff of using full container based sandbox for running LLM generated code.
+Instead, it let's you run safely run Python code written by an LLM embedded in your agent, with startup times measured in single digit microseconds not hundreds of milliseconds.
+
+About pydantic-monty
+--------------------
 
 Home: https://github.com/pydantic/monty
 
@@ -123,11 +157,13 @@ Current release info
 | Name | Downloads | Version | Platforms |
 | --- | --- | --- | --- |
 | [![Conda Recipe](https://img.shields.io/badge/recipe-pydantic--monty-green.svg)](https://anaconda.org/conda-forge/pydantic-monty) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/pydantic-monty.svg)](https://anaconda.org/conda-forge/pydantic-monty) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/pydantic-monty.svg)](https://anaconda.org/conda-forge/pydantic-monty) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/pydantic-monty.svg)](https://anaconda.org/conda-forge/pydantic-monty) |
+| [![Conda Recipe](https://img.shields.io/badge/recipe-pydantic--monty--client-green.svg)](https://anaconda.org/conda-forge/pydantic-monty-client) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/pydantic-monty-client.svg)](https://anaconda.org/conda-forge/pydantic-monty-client) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/pydantic-monty-client.svg)](https://anaconda.org/conda-forge/pydantic-monty-client) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/pydantic-monty-client.svg)](https://anaconda.org/conda-forge/pydantic-monty-client) |
+| [![Conda Recipe](https://img.shields.io/badge/recipe-pydantic--monty--runtime-green.svg)](https://anaconda.org/conda-forge/pydantic-monty-runtime) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/pydantic-monty-runtime.svg)](https://anaconda.org/conda-forge/pydantic-monty-runtime) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/pydantic-monty-runtime.svg)](https://anaconda.org/conda-forge/pydantic-monty-runtime) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/pydantic-monty-runtime.svg)](https://anaconda.org/conda-forge/pydantic-monty-runtime) |
 
-Installing pydantic-monty
-=========================
+Installing pydantic-monty-client
+================================
 
-Installing `pydantic-monty` from the `conda-forge` channel can be achieved by adding `conda-forge` to your channels with:
+Installing `pydantic-monty-client` from the `conda-forge` channel can be achieved by adding `conda-forge` to your channels with:
 
 ```
 conda config --add channels conda-forge
@@ -141,7 +177,7 @@ How to use
 <summary>With conda</summary>
 
 ```
-conda install pydantic-monty
+conda install pydantic-monty pydantic-monty-client pydantic-monty-runtime
 ```
 
 </details>
@@ -150,7 +186,7 @@ conda install pydantic-monty
 <summary>With mamba</summary>
 
 ```
-mamba install pydantic-monty
+mamba install pydantic-monty pydantic-monty-client pydantic-monty-runtime
 ```
 
 </details>
@@ -160,9 +196,9 @@ mamba install pydantic-monty
 
 ```
 # for adding to your local project
-pixi add pydantic-monty
+pixi add pydantic-monty pydantic-monty-client pydantic-monty-runtime
 # for installing globally
-pixi global install pydantic-monty
+pixi global install pydantic-monty pydantic-monty-client pydantic-monty-runtime
 ```
 
 </details>
@@ -257,17 +293,17 @@ Terminology
                   produce the finished article (built conda distributions)
 
 
-Updating pydantic-monty-feedstock
-=================================
+Updating pydantic-monty-client-feedstock
+========================================
 
-If you would like to improve the pydantic-monty recipe or build a new
+If you would like to improve the pydantic-monty-client recipe or build a new
 package version, please fork this repository and submit a PR. Upon submission,
 your changes will be run on the appropriate platforms to give the reviewer an
 opportunity to confirm that the changes result in a successful build. Once
 merged, the recipe will be re-built and uploaded automatically to the
 `conda-forge` channel, whereupon the built conda packages will be available for
 everybody to install and use from the `conda-forge` channel.
-Note that all branches in the conda-forge/pydantic-monty-feedstock are
+Note that all branches in the conda-forge/pydantic-monty-client-feedstock are
 immediately built and any created packages are uploaded, so PRs should be based
 on branches in forks, and branches in the main repository should only be used to
 build distinct package versions.

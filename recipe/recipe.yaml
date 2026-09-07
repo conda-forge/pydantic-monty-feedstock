@@ -1,62 +1,203 @@
 context:
   version: "0.0.23"
 
-package:
+recipe:
   name: pydantic-monty
   version: ${{ version }}
 
 source:
-  # https://github.com/pydantic/monty/issues/76
-  # url: https://pypi.org/packages/source/p/pydantic-monty/pydantic-monty-${{ version }}.tar.gz
-  url: https://github.com/pydantic/monty/archive/refs/tags/v${{ version }}.tar.gz
-  sha256: 653bc739256dc511fa7600d1f7ee0a2f392ccbe91018a99e0c62c496197728a9
+  - url: https://pypi.org/packages/source/p/pydantic-monty/pydantic_monty-${{ version }}.tar.gz
+    sha256: ee674b81ed12f81cfbe0db210fe5e803c754d0682634331931f4d70d5742058d
+    target_directory: pydantic-monty
+  - url: https://pypi.org/packages/source/p/pydantic-monty-client/pydantic_monty_client-${{ version }}.tar.gz
+    sha256: 8b31f75afebb60c0416c869c8d6667a75e84b0f05b7a0b44e51b77ef98f294d7
+    target_directory: pydantic-monty-client
+  - url: https://pypi.org/packages/source/p/pydantic-monty-runtime/pydantic_monty_runtime-${{ version }}.tar.gz
+    sha256: d181f557cd3d19ee826459dea234a2b440e2b6de093e66384629843959146071
+    target_directory: pydantic-monty-runtime
+  - url: https://raw.githubusercontent.com/pydantic/monty/refs/tags/v${{ version }}/LICENSE
+    sha256: 5841db47ee6e1f0becafe2d19ca43c08cbc6d2c0952822ccf88cbbf2bd0749bd
 
 build:
-  script:
-    env:
-      CARGO_PROFILE_RELEASE_STRIP: symbols
-      CARGO_PROFILE_RELEASE_LTO: fat
-      CARGO: cargo-auditable-wrapper${{ '' if unix else '.bat' }}
-    content:
-      - cd crates/monty-python
-      - if: win
-        then:
-          # hack: path too long for ruff subpackage
-          - set CARGO_HOME=C:\.cargo
-      - if: unix
-        then:
-          - cp ${RECIPE_DIR}/cargo-auditable-wrapper.sh ${BUILD_PREFIX}/bin/cargo-auditable-wrapper
-        else:
-          - copy %RECIPE_DIR%\cargo-auditable-wrapper.bat %BUILD_PREFIX%\Library\bin\cargo-auditable-wrapper.bat
-      - python -m pip install . -vv
-      - cargo-bundle-licenses --format yaml --output ../../THIRD_PARTY.yml
-  number: 1
+  number: 2
 
-requirements:
-  build:
-    - ${{ compiler('c') }}
-    - ${{ compiler('rust') }}
-    - ${{ stdlib('c') }}
-    - cargo-bundle-licenses
-    - cargo-auditable
-    - if: build_platform != target_platform
-      then:
+outputs:
+  # The `monty` binary (maturin `bindings = "bin"`), so the wheel carries no
+  # extension module and one build serves every python version.
+  - package:
+      name: pydantic-monty-runtime
+    build:
+      skip: not is_python_min
+      python:
+        version_independent: true
+      script:
+        env:
+          CARGO_PROFILE_RELEASE_STRIP: symbols
+          CARGO_PROFILE_RELEASE_LTO: fat
+          CARGO: cargo-auditable-wrapper${{ '' if unix else '.bat' }}
+        content:
+          - cd pydantic-monty-runtime
+          - if: unix
+            then:
+              - cp ${RECIPE_DIR}/cargo-auditable-wrapper.sh ${BUILD_PREFIX}/bin/cargo-auditable-wrapper
+            else:
+              - copy %RECIPE_DIR%\cargo-auditable-wrapper.bat %BUILD_PREFIX%\Library\bin\cargo-auditable-wrapper.bat
+          # cc-rs concatenates $CFLAGS with the target-scoped flags instead of
+          # letting the latter win, so the cross flags leak into the build-script
+          # (i.e. build platform) compilations of C crates such as `zstd-sys`
+          # pulled in by `ty_vendored`. Scope them to the target instead.
+          - if: build_platform != target_platform
+            then:
+              - export TARGET_CFLAGS="${CFLAGS}"
+              - export TARGET_CXXFLAGS="${CXXFLAGS}"
+              - unset CFLAGS CXXFLAGS
+          # rust-lld cannot handle some of the relocations gcc emits for ppc64le
+          # (the inline-PLT R_PPC64_PLTSEQ/PLTCALL sequences), which breaks linking
+          # of the C crates. gcc honours the last `-fuse-ld`, so this overrides
+          # rustc's bundled rust-lld with the GNU bfd linker.
+          - if: target_platform == "linux-ppc64le"
+            then: export CARGO_BUILD_RUSTFLAGS="${CARGO_BUILD_RUSTFLAGS:-} -C link-arg=-fuse-ld=bfd"
+          - python -m pip install . -vv
+          - cargo-bundle-licenses --format yaml --output ./THIRD_PARTY.yml
+    requirements:
+      build:
+        - ${{ compiler('rust') }}
+        - ${{ compiler('c') }}
+        - ${{ stdlib('c') }}
+        - cargo-bundle-licenses
+        - cargo-auditable
+        - if: build_platform != target_platform
+          then:
+            - python
+            - cross-python_${{ target_platform }}
+            - maturin >=1.14.1,<2
+      host:
         - python
-        - cross-python_${{ target_platform }}
+        - pip
+        - maturin >=1.14.1,<2
+      run:
+        - python
+    tests:
+      - python:
+          python_version:
+            - ${{ python_min }}.*
+            - "*"
+          pip_check: true
+      - script:
+          - monty --version
+    about:
+      license_file:
+        - LICENSE
+        - pydantic-monty-runtime/THIRD_PARTY.yml
+
+  # The `pydantic_monty` module. pyo3 without abi3, so this is built once per
+  # python version.
+  - package:
+      name: pydantic-monty-client
+    build:
+      script:
+        env:
+          CARGO_PROFILE_RELEASE_STRIP: symbols
+          CARGO_PROFILE_RELEASE_LTO: fat
+          CARGO: cargo-auditable-wrapper${{ '' if unix else '.bat' }}
+        content:
+          - cd pydantic-monty-client
+          - if: unix
+            then:
+              - cp ${RECIPE_DIR}/cargo-auditable-wrapper.sh ${BUILD_PREFIX}/bin/cargo-auditable-wrapper
+            else:
+              - copy %RECIPE_DIR%\cargo-auditable-wrapper.bat %BUILD_PREFIX%\Library\bin\cargo-auditable-wrapper.bat
+          # See the comment on the runtime output.
+          - if: build_platform != target_platform
+            then:
+              - export TARGET_CFLAGS="${CFLAGS}"
+              - export TARGET_CXXFLAGS="${CXXFLAGS}"
+              - unset CFLAGS CXXFLAGS
+          # See the comment on the runtime output.
+          - if: target_platform == "linux-ppc64le"
+            then: export CARGO_BUILD_RUSTFLAGS="${CARGO_BUILD_RUSTFLAGS:-} -C link-arg=-fuse-ld=bfd"
+          # `aws-lc-sys`' cc-based builder hands its ARM64 assembly to cl.exe, which
+          # silently drops the `.S` files and then fails on the C feature probes.
+          # Build it through CMake with clang-cl instead, and keep CMake's object
+          # paths short enough for Windows.
+          - if: target_platform == "win-arm64"
+            then:
+              - set "CARGO_TARGET_DIR=%TMP%\pydantic-monty-cargo-target"
+              - set "CARGO_HOME=%TMP%\pydantic-monty-cargo-home"
+              - set "AWS_LC_SYS_CMAKE_BUILDER=1"
+              - set "CC_aarch64_pc_windows_msvc=clang-cl.exe"
+              - set "CXX_aarch64_pc_windows_msvc=clang-cl.exe"
+              - set "ASM_aarch64_pc_windows_msvc=clang-cl.exe"
+              - set "CMAKE_GENERATOR=Ninja"
+          - python -m pip install . -vv
+          - cargo-bundle-licenses --format yaml --output ./THIRD_PARTY.yml
+    requirements:
+      build:
+        - ${{ compiler('rust') }}
+        - ${{ compiler('c') }}
+        - ${{ stdlib('c') }}
+        - cargo-bundle-licenses
+        - cargo-auditable
+        - if: build_platform != target_platform
+          then:
+            - python
+            - cross-python_${{ target_platform }}
+            - maturin >=1.9.4,<2
+        - if: target_platform == "win-arm64"
+          then:
+            - cmake
+            - ninja
+      host:
+        - python
+        - pip
         - maturin >=1.9.4,<2
-  host:
-    - python
-    - pip
-    - maturin >=1.9.4,<2
-    - setuptools
-  run:
-    - python
-    - typing_extensions >=4.5
-tests:
-  - python:
-      imports:
-        - pydantic_monty
-      pip_check: true
+      run:
+        - python
+        - typing_extensions >=4.5
+    tests:
+      - python:
+          imports:
+            - pydantic_monty
+          pip_check: true
+    about:
+      license_file:
+        - LICENSE
+        - pydantic-monty-client/THIRD_PARTY.yml
+
+  # Metapackage pairing the module with the binary it spawns as a worker.
+  - package:
+      name: pydantic-monty
+    build:
+      skip: not (target_platform == "linux-64" and is_python_min)
+      noarch: python
+      python:
+        entry_points:
+          - pydantic-monty = pydantic_monty._cli:main
+      script:
+        - cd pydantic-monty
+        - python -m pip install . -vv
+    requirements:
+      host:
+        - python ${{ python_min }}.*
+        - pip
+        - hatchling
+      run:
+        - python >=${{ python_min }}
+        - ${{ pin_subpackage('pydantic-monty-client', upper_bound='x.x.x') }}
+        - ${{ pin_subpackage('pydantic-monty-runtime', upper_bound='x.x.x') }}
+    tests:
+      - python:
+          imports:
+            - pydantic_monty
+          python_version:
+            - ${{ python_min }}.*
+            - "*"
+          pip_check: true
+      # `pydantic-monty` resolves the `monty` binary from the runtime, so this
+      # only passes if both halves are wired up.
+      - script:
+          - monty --version
+          - pydantic-monty --version
 
 about:
   homepage: https://github.com/pydantic/monty
@@ -68,7 +209,6 @@ about:
   license: MIT
   license_file:
     - LICENSE
-    - THIRD_PARTY.yml
   repository: https://github.com/pydantic/monty
 
 extra:
