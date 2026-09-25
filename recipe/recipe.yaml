@@ -1,5 +1,5 @@
 context:
-  version: "0.0.23"
+  version: "1.0.0"
 
 recipe:
   name: pydantic-monty
@@ -7,19 +7,19 @@ recipe:
 
 source:
   - url: https://pypi.org/packages/source/p/pydantic-monty/pydantic_monty-${{ version }}.tar.gz
-    sha256: ee674b81ed12f81cfbe0db210fe5e803c754d0682634331931f4d70d5742058d
+    sha256: 9a369b4b42ec6bee6de3f9df022bd851a21879defd4badb3c2a2dc558faf6807
     target_directory: pydantic-monty
   - url: https://pypi.org/packages/source/p/pydantic-monty-client/pydantic_monty_client-${{ version }}.tar.gz
-    sha256: 8b31f75afebb60c0416c869c8d6667a75e84b0f05b7a0b44e51b77ef98f294d7
+    sha256: be045571b500d92de27b86de22c2a7a1130711667fa86a862865a650355da61a
     target_directory: pydantic-monty-client
   - url: https://pypi.org/packages/source/p/pydantic-monty-runtime/pydantic_monty_runtime-${{ version }}.tar.gz
-    sha256: d181f557cd3d19ee826459dea234a2b440e2b6de093e66384629843959146071
+    sha256: e3e5e992fce918fe4e07746ec18a762d52f6b03641d91210340da2d50f5c3808
     target_directory: pydantic-monty-runtime
   - url: https://raw.githubusercontent.com/pydantic/monty/refs/tags/v${{ version }}/LICENSE
     sha256: 5841db47ee6e1f0becafe2d19ca43c08cbc6d2c0952822ccf88cbbf2bd0749bd
 
 build:
-  number: 2
+  number: 0
 
 outputs:
   # The `monty` binary (maturin `bindings = "bin"`), so the wheel carries no
