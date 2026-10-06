@@ -1,0 +1,29 @@
+From 5f4c888979a16f21ab5f9c7f0c681ffc80bc6123 Mon Sep 17 00:00:00 2001
+From: Pavel Zwerschke <pavelzw@gmail.com>
+Date: Tue, 6 Oct 2026 09:27:12 +0200
+Subject: [PATCH] Use iter_mut() to iterate the boxed string cache array
+
+Iterating `&mut Box<[T; N]>` directly only compiles with Rust >= 1.99,
+but conda-forge currently only ships Rust 1.98. This reverts the
+corresponding change from upstream commit 505f1044 ("ci: fix lints for
+rust 1.99").
+---
+ crates/monty/src/modules/json/string_cache.rs | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/crates/monty/src/modules/json/string_cache.rs b/crates/monty/src/modules/json/string_cache.rs
+index 0e2cc78..6ec5414 100644
+--- a/crates/monty/src/modules/json/string_cache.rs
++++ b/crates/monty/src/modules/json/string_cache.rs
+@@ -95,7 +95,7 @@ impl JsonStringCache {
+     /// Called during `VM::drop()` before the heap is torn down.
+     pub fn drop_all(&mut self, heap: &mut impl ContainsHeap) {
+         if let Some(inner) = &mut self.inner {
+-            for entry in &mut inner.entries {
++            for entry in inner.entries.iter_mut() {
+                 if let Some((_, _, value)) = entry.take() {
+                     value.drop_with(heap);
+                 }
+-- 
+2.53.0
+
