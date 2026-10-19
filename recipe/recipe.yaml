@@ -12,13 +12,9 @@ source:
   - url: https://pypi.org/packages/source/p/pydantic-monty-client/pydantic_monty_client-${{ version }}.tar.gz
     sha256: 6ae0fa2cb3657d2a5d30e3428e82bca2c981786d11bf28a6e8ed01d26c5620d7
     target_directory: pydantic-monty-client
-    patches:
-      - patches/0001-use-iter-mut.patch
   - url: https://pypi.org/packages/source/p/pydantic-monty-runtime/pydantic_monty_runtime-${{ version }}.tar.gz
     sha256: a9a1252efd6e51b55cc2c21d832f101af605b887fc896d1b0799d720e283e2a3
     target_directory: pydantic-monty-runtime
-    patches:
-      - patches/0001-use-iter-mut.patch
   - url: https://raw.githubusercontent.com/pydantic/monty/refs/tags/v${{ version }}/LICENSE
     sha256: 5841db47ee6e1f0becafe2d19ca43c08cbc6d2c0952822ccf88cbbf2bd0749bd
 
