@@ -1,5 +1,5 @@
 context:
-  version: "1.6.0"
+  version: "1.7.0"
 
 recipe:
   name: pydantic-monty
@@ -7,13 +7,13 @@ recipe:
 
 source:
   - url: https://pypi.org/packages/source/p/pydantic-monty/pydantic_monty-${{ version }}.tar.gz
-    sha256: f5401dfd0352840befb3f49d7a56be7dae3f66d7f87b0e619098f745c7d16edb
+    sha256: f55ba221e9e30ad010ec415fa88c97f159698e95983b1afded3b277f8b67dcb6
     target_directory: pydantic-monty
   - url: https://pypi.org/packages/source/p/pydantic-monty-client/pydantic_monty_client-${{ version }}.tar.gz
-    sha256: 55661e14c9ba023bacd6473449bf5dfb89bb7eef506f2bcbd088b8efead82122
+    sha256: 5c98a1475012d9768604b15ae18a660e1a46e8abe90aea5b96e6d58b003b05db
     target_directory: pydantic-monty-client
   - url: https://pypi.org/packages/source/p/pydantic-monty-runtime/pydantic_monty_runtime-${{ version }}.tar.gz
-    sha256: 6fab4c1da3bd96c5761c53f62ffec46ac7b22b797042e4711084adf564e8d32d
+    sha256: d01cf0c702993ce6bfc41a12218fe1b202fb6cc8a183280823b92accd9fae9cb
     target_directory: pydantic-monty-runtime
   - url: https://raw.githubusercontent.com/pydantic/monty/refs/tags/v${{ version }}/LICENSE
     sha256: 5841db47ee6e1f0becafe2d19ca43c08cbc6d2c0952822ccf88cbbf2bd0749bd
